@@ -8,13 +8,13 @@ pygments: true
 # Themes are encouraged to use these universal variables 
 # so be sure to set them if your theme uses them.
 #
-title :Samhan's Blag 
-tagline:To infinity and beyond ..
-author :
+title : Samhan's Blag 
+tagline : To infinity and beyond ..
+author : 
   name : Samhan
   email : pickledbrains@gmail.com
   github : samhann
-  twitter :samhanknr
+  twitter : samhanknr
 
 # The production_url is only used when full-domain names are needed
 # such as sitemap.txt 
