@@ -1,8 +1,9 @@
 
 (function () {
     window.signature = {
-        initialize: function () {
-            return $('.signature svg').each(function () {
+        initialize: function (aClass) {
+            debugger;
+            return $(aClass).each(function () {
                 var delay, i, len, length, path, paths, previousStrokeLength, results, speed;
                 paths = $('path, circle, rect', this);
                 delay = 0;
@@ -19,11 +20,13 @@
                 return results;
             });
         },
-        animate: function () {
-            return $('.signature svg').each(function () {
+        animate: function (aClass) {
+            debugger;
+            return $(aClass).each(function () {
                 var delay, i, len, length, path, paths, results, speed;
                 paths = $('path, circle, rect', this);
                 results = [];
+                debugger;
                 for (i = 0, len = paths.length; i < len; i++) {
                   
                     path = paths[i];
@@ -36,13 +39,5 @@
             });
         }
     };
-    $(document).ready(function () {
-        window.signature.initialize();
-        return $('button').on('click', function () {
-            window.signature.initialize();
-            return setTimeout(function () {
-                return window.signature.animate();
-            }, 500);
-        });
-    });
+    
 }.call(this));
