@@ -2,7 +2,6 @@
 (function () {
     window.signature = {
         initialize: function (aClass) {
-            debugger;
             return $(aClass).each(function () {
                 var delay, i, len, length, path, paths, previousStrokeLength, results, speed;
                 paths = $('path, circle, rect', this);
@@ -21,7 +20,6 @@
             });
         },
         animate: function (aClass) {
-            debugger;
             return $(aClass).each(function () {
                 var delay, i, len, length, path, paths, results, speed;
                 paths = $('path, circle, rect', this);
