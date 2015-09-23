@@ -13,26 +13,24 @@
 
       div {
           font-family: handFont;
-          font-size:24pt;
+          font-size:28pt;
       }
 
   ::-webkit-scrollbar {
-      -webkit-appearance: none;
-      width: 7px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-        border-radius: 4px;
-        background-color: rgba(0,0,0,.5);
-      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
-    }   
-
+    -webkit-appearance: none;
+    width: 7px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+}
       .signature {
         position: relative;
         overflow: auto;
         width: 100%;
         height: 0;
-        padding-bottom: 50.30973%;
+        padding-bottom: 30.30973%;
      }
 
       .signature svg {
@@ -121,7 +119,7 @@
             name = "";
          }
 
-         $(document).octoberLeaves('start');
+        $(document).octoberLeaves('start');
 
 //         document.getElementById("hi").innerHTML = "Hi "+ name; 
     }
@@ -150,9 +148,9 @@ The little memories
 #
 Fantasies , And Talking trees,
 #
-"Can you believe I'm 25 ??" she asked in that little voice ,
+"Can you believe I'm 25 ??" she asked so cutely ,
 #
-"Yeah , I know .." replied the tree like noise , 
+"Yeah , I know .." replied the tree  , 
 #
 "See You're so tall now ..." 
 #
@@ -225,6 +223,8 @@ The innocence gave way to guile
 #
 Her lips began to smile.
 #
+(click/tap if it doesn't play :P )
+#
 $
 #
 She opened up her eyes -
@@ -252,6 +252,8 @@ P.S. : "Happy Birthday" :P.
 
            });
 
+                $(globalVid).prop("controls",true);
+
            $(globalVid).on('canplaythrough', function() {
                if(!called) {
                  callback();
@@ -259,8 +261,9 @@ P.S. : "Happy Birthday" :P.
                }
               
            })
-           globalVid.src = 'tn.mp4';
+           globalVid.src = 'tn2.mp4';
            globalVid.autoPlay = true;
+
         }
         $(function() {
 
@@ -300,8 +303,18 @@ P.S. : "Happy Birthday" :P.
                        $(globalVid).css("display","none");
                        setTimeout(function() {
                         $(globalVid).css("display","block");
+
+                         var hasPlayed = false;
+                          document.addEventListener("touchstart", function(event) {
+                            if (!hasPlayed) {
+                              globalVid.play();
+                              hasPlayed = true;
+                            }
+                              
+                          });
+
                           globalVid.play(); 
-                       },accumulatedDelay + idx*120);
+                       },  idx*120);
                        accumulatedDelay += 15000;
                     }
                     //append it to the welcome message
