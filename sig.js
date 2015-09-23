@@ -13,7 +13,8 @@
                     length = path.getTotalLength();
                     previousStrokeLength = speed || 0;
                     speed = length < 100 ? 20 : Math.floor(length);
-                    delay += previousStrokeLength + 100;
+                    delay += previousStrokeLength  + 100 + 2342;
+
                     results.push($(path).css('transition', 'none').attr('data-length', length).attr('data-speed', speed).attr('data-delay', delay).attr('stroke-dashoffset', length).attr('stroke-dasharray', length + ',' + length));
                 }
                 return results;
@@ -23,11 +24,13 @@
             return $(aClass).each(function () {
                 var delay, i, len, length, path, paths, results, speed;
                 paths = $('path, circle, rect', this);
+
                 results = [];
                 debugger;
                 for (i = 0, len = paths.length; i < len; i++) {
                   
                     path = paths[i];
+                    globPath = path
                     length = $(path).attr('data-length');
                     speed = $(path).attr('data-speed');
                     delay = $(path).attr('data-delay');
