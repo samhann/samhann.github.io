@@ -1,15 +1,18 @@
 ---
 layout: post
 title: "FB Newsfeed style loader in Swift"
-tags: ['swift','ios']
+tags: ['swift' , 'ios']
 date: 2016-01-10
 ---
 
-Facebook has a really nifty animation while loading the newsfeed . Today we'll take a shot at doing this on iOS using Swift.
+Facebook has a nifty animation for the placeholder while loading the newsfeed . Today we'll take a shot at replicating it on iOS.
 
-I began as all of us do , by Googling for a ready-made implementation :P . As luck would have it I found this excellent [deconstruction](http://cloudcannon.com/deconstructions/2014/11/15/facebook-content-placeholder-deconstruction.html) of the animation by George Philips.
+![Final result](https://camo.githubusercontent.com/5b1b29c22d438bdb52429d083d84241775d083db/687474703a2f2f672e7265636f726469742e636f2f784156374b50356c437a2e676966)
 
-Turns out it isnt really that hard. Its even easier on iOS than the HTML based version.
+
+I began as all of us do , by Googling for a ready-made implementation :P . As luck would have it, I found this excellent [deconstruction](http://cloudcannon.com/deconstructions/2014/11/15/facebook-content-placeholder-deconstruction.html) and HTML+JS implementation by George Philips.
+
+Turns out it isnt that hard, and its even easier on iOS as the animation and drawing APIs are way more powerful.
 
 
 ## Creating the Gradient
@@ -19,7 +22,7 @@ First , you need an animated gradient that looks like this :
 ![Animation](/images/loader.gif)
 
 
-This gradient is added to the content view of every cell. 
+This gradient is then added to the content view of every cell. 
 
 ```swift
 
@@ -36,8 +39,7 @@ This gradient is added to the content view of every cell.
         ]
 ```
 
-
-Next we set the locations or points for the gradient. I declared an extension on CGFloat to easily extract doubleValues.
+Having set the colours, we set the locations or points for the gradient. I declared an extension on CGFloat to easily extract doubleValues.
 
 ```swift
     let startLocations = [NSNumber(double: gradient.startPoint.x.doubleValue()),
@@ -48,7 +50,7 @@ Next we set the locations or points for the gradient. I declared an extension on
     gradient.locations = startLocations
 ```
 
-Now we animate the gradient using Core Animation.
+Now , to animate the gradient using Core Animation.
 
 
 ```swift
@@ -69,12 +71,16 @@ Now we animate the gradient using Core Animation.
 
 ```
 
-The gradient has a locations property which we animate to move the gradient along the view. We give it a repeat count of infinity so that it continues animating.
+A `CAGradientLayer` has a `locations` property which can be animated to move the gradient along the length of the view.
+
+We create a `CABasicAnimation` for the locations key , with a repeat count of infinity so that it continues animating.
 
 
 ## Add the Cutout
 
-So now we've added the gradient to the contentview. Now we need to cover up the gradient with white with "holes" where the other views. This is also easy to do. 
+Now that we've added the animated gradient to the contentview, we need to cover it with white and cut out "holes" where the other views are. Imagine a white wall in front of the animating gradient , with windows wherever the other views are.
+
+This is also easy to do using CoreGraphics.
 
 We create a class called CutoutView which fills itself with a white background but clears the rects where all the other views are.
 
@@ -100,9 +106,11 @@ First we create the CutoutView like so :
     
 ```
 
-We set the alphas of all the other views to zero and set autolayout constraints in the boundInside method to handle layout changes.
+We set the alphas of all the other views to zero and set autolayout constraints in the `boundInside` method to handle layout changes.
 
-Now to draw the "holes" , we use the following `drawRect:` implementation :
+So how does the cutout draw its windows ?
+
+To draw the "holes" , we use the following `drawRect:` implementation :
 
 ```swift
     override func drawRect(rect: CGRect) {
@@ -123,13 +131,16 @@ Now to draw the "holes" , we use the following `drawRect:` implementation :
     }
 
 ```
-The trick here is in using `CGContextSetBlendMode(context,.Clear)`.
-That clears the rects of all other subviews of this superview except the cutout.
+The trick here is to use `CGContextSetBlendMode(context,.Clear)`, using which we clear the rects of all the other subviews of this superview except ofcourse the `CutoutView`.
 
-This allows for some degree of flexibility for changing your layouts using Storyboards. However ,more complex layouts with multiline text fields or overlapping views may give unexpected results.
+This way of doing things allows for some degree of flexibility for changing your cell layouts in interface builder. However ,more complex layouts with multiline text fields or overlapping views may give unexpected results.
 
 And voila !
 
 ![Final result](https://camo.githubusercontent.com/5b1b29c22d438bdb52429d083d84241775d083db/687474703a2f2f672e7265636f726469742e636f2f784156374b50356c437a2e676966)
+
+While adding the animation to multiple cells , we do so in a `CATransaction` so that they all animate in sync.
+
+An additional enhancement might be to draw the rects a little smaller in height if the view is a UILabel.
 
 The full code is on [Github](https://github.com/samhann/Loader.swift).
