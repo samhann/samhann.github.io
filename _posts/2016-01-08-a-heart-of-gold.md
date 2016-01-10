@@ -8,8 +8,8 @@ date: 2016-01-09
 
 Her eyes were set like ruins,  
 That shone beneath a sea of stars,  
-Her hair did smoke from ancient fires,  
-With smolders of deep desires.  
+Her hair did smoke from fires,  
+Of some ancient desire.  
 
 Her laughter came in waves,   
 So gently at first,  
