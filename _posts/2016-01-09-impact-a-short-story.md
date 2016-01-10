@@ -5,9 +5,6 @@ tags: ['writing']
 date: 2016-01-09
 ---
 
-# Impact 
-
-
 The earth is asleep, snuggled beneath it's starry blanket, as it drifts through the darkness of the universe. I  hear it calling out to me. It's tendrils coiling around my ankles , pulling me down under...
 
 ## 300 milliseconds to impact :
