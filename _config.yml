@@ -1,0 +1,32 @@
+name: 'Samhans Blag'
+description: 'Software Developer'
+meta_description: 'iOS Developer'
+baseurl: ''
+
+timezone: India/New_Delhi
+
+markdown: redcarpet
+
+redcarpet:
+  extensions: ["footnotes", "strikethrough", "tables"]
+
+highlighter: pygments
+#logo: 'https://en.gravatar.com/userimage/99482473/f01953fd565943d8ef4dfe02feef7fe3.jpg'
+paginate: 3
+gems: ['jekyll-paginate']
+
+author:
+  name: 'Samhan Salahuddin'
+  website: 'http://samhann.github.io'
+  bio: 'Software Engineer @ Cleartrip'
+  image: 'https://en.gravatar.com/userimage/99482473/f01953fd565943d8ef4dfe02feef7fe3.jpg'
+  location: 'Bangalore,India'
+
+page:
+    disqus: true
+
+# Details for the RSS feed generator
+url: 'http://samhann.github.io'
+
+# Exlcusion
+exclude: [fabfile.py, fabfile.pyc, _site.zip]

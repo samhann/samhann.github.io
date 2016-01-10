@@ -1,0 +1,48 @@
+---
+layout: default
+disqus: true
+archive: false
+---
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header>
+        {% include header.html %}
+
+        {% if page.tags %}
+           <div class="post-meta tags">
+	     Posted in {{ page.tags | array_to_sentence_string }}
+    	   </div>
+    	{% endif %}
+           <h1 class="post-title">{{ page.title }}</h1>
+           <div class="post-meta">
+    	      <time datetime="{{ page.date | date:"%Y-%m-%d" }}">{{ page.date | date_to_string }}</time>
+           </div>
+        </header>
+
+        <section class="post-content">
+            {{ content }}
+        </section>
+
+        
+        <footer class="post-footer">
+	    {% if site.author %}
+            <section class="author">
+                <img src="{{site.author.image}}" class="userimage" alt="{{site.author.name}}" />
+                <p class="attr">Author</p>
+                <h4><a href="{{site.author.website}}">{{site.author.name}}</a></h4>
+                <p class="bio">{{site.author.bio}}</p>
+            </section>
+	    {% endif %}
+
+
+            {% if page.disqus %}
+	      {% include disqus.html %}
+            {% endif %}
+        </footer>
+		
+    </article>
+
+</main>
