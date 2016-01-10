@@ -2,7 +2,7 @@
 layout: post
 title: "Impact : A Short Story"
 tags: ['writing']
-date: 2016-01-10
+date: 2016-01-09
 ---
 
 # Impact 
