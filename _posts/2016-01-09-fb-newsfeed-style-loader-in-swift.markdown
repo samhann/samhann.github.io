@@ -7,9 +7,9 @@ date: 2016-01-10
 
 Facebook has a really nifty animation while loading the newsfeed . Today we'll take a shot at doing this on iOS using Swift.
 
-Ofcourse , I began , like all professional programmers by Googling for a ready-made implementation :P . As luck would have it I got this excellent [deconstruction](http://cloudcannon.com/deconstructions/2014/11/15/facebook-content-placeholder-deconstruction.html) of the animation by George Philips.
+I began as all of us do , by Googling for a ready-made implementation :P . As luck would have it I found this excellent [deconstruction](http://cloudcannon.com/deconstructions/2014/11/15/facebook-content-placeholder-deconstruction.html) of the animation by George Philips.
 
-Turns out this isnt really that hard to do. Its even easier on iOS than the above one in CSS and JS.
+Turns out it isnt really that hard. Its even easier on iOS than the HTML based version.
 
 
 ## Creating the Gradient
