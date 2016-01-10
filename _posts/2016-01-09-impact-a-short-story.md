@@ -29,6 +29,6 @@ I leave the phone on the table. I leave the door unlocked. There's an orange in 
 ## 10 minutes to impact :
 I pick up my phone to write my final story. I have nothing profound to say. This won't be a master piece or anything.
 
-I begin typing my story :
+I begin typing my story  :
 
 "The earth is asleep, snuggled beneath its starry blanket.. "
