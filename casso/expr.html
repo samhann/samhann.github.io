@@ -1,0 +1,214 @@
+<html>
+<head></head>
+
+<script src="math.js"></script>
+<script src="c.js"></script>
+<script src="c.min.js"></script>
+
+<script>
+
+function splitToExpr(string)
+{
+	components = string.split("=")
+	return components.map( function(element) { return element.trim()  });
+}
+
+function parseComponent(component,variable)
+{
+	var node = math.parse(component)
+	var stack = [];
+
+	node.traverse(function (node, path, parent) {
+  		
+		if(node.type != "ParenthesisNode") {
+			console.log(node.type);
+			stack.push(node);	
+		}
+		
+  		});
+	
+	for(var i = 0; i < stack.length; i ++)
+	{
+
+	}
+
+
+	// dumb hack .. fix ..
+	if (stack.length == 1) {
+
+		return nodeForOperand(stack[0]);
+	}
+	else {
+
+			while(stack.length > 1) {
+
+			var op1 = stack.pop();
+			var op2 = stack.pop();
+			var op = stack.pop();
+
+			var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+
+			stack.push(expression);
+		
+	}
+
+
+	}
+
+
+	return stack[0];
+}
+
+function expressionFor(op1,op2,operand)
+{
+	if(operand.op == "+") {
+		return op1.plus(op2);
+	}
+
+	else if(operand.op == "*") {
+		return op1.times(op2);
+	}
+	else if(operand.op == "-") {
+		return op1.minus(op2);
+	}
+	else if(operand.op == "/") {
+		return op1.divide(op2);
+	}
+}
+
+function nodeForOperand(node)
+{
+		// hack hack
+		if(node["type"] == null || node["type"] == undefined) {
+			return node;
+		}
+
+		switch (node.type) {
+    		case 'ConstantNode': 
+    			return new c.Expression(parseFloat(node.value)); 
+    			break;
+    		case 'SymbolNode':   
+    		    if(variables[node.name]) {
+    		      return new c.Expression(variables[node.name].value);	
+    		    }
+    		    else {
+
+    		       variables[node.name] = new c.Variable({ value: 10 });
+			       return new c.Expression(variables[node.name]);	
+
+
+    		    }
+    			
+    			break;
+    		default:             
+				return null;
+			}
+}
+
+var cS = new c.SimplexSolver();
+var variables = {};
+
+function parseCondition(condition)
+{
+	var components = splitToExpr(condition)
+	if (components.length != 2 ) {
+		return false;
+	}
+
+
+	var variableName = components[0];
+	var variable = variables[variableName];
+	if(variable == null || variable == undefined) {
+
+		variables[variableName] = new c.Variable({ value: 10 });
+		variable = variables[variableName];
+	}
+
+	if(components[1]=="?") {
+		return true;
+	}
+
+	var node = parseComponent(components[1]);
+
+
+	var equation = new c.Equation(variable,node);
+	cS.addConstraint(equation);
+
+	return true;
+
+	if(node.value != undefined) {
+		console.log(variableName + " is "+ node.value);
+	}
+	else {
+
+	}
+
+}
+
+function processConditions(text)
+{
+	cS = new c.SimplexSolver();
+	variables = {};
+
+	for(var i = 0; i< text.length; i ++) {
+
+		if(!parseCondition(text[i])) {
+
+			document.getElementById("results").innerHTML = "Error";
+			return;
+		}
+	}
+
+	cS.solve();
+
+	var results = [];
+	var keys = Object.keys(variables);
+
+	for(var i = 0 ; i < keys.length; i++)
+	{
+		results.push(keys[i] + " : "+variables[keys[i]]);
+	}
+
+	var resultText = results.join("<br/>");
+
+	document.getElementById("results").innerHTML = resultText;
+
+}
+
+document.addEventListener("DOMContentLoaded", function(event) {
+    
+    var area = document.getElementById("input").querySelector('textarea');
+if (area.addEventListener) {
+  area.addEventListener('input', function() {
+    
+    var text = area.value;
+    processConditions(text.split("\n").filter(function (element) { return element.trim().length > 0; }));
+
+
+
+  }, false);
+}
+  });
+
+</script>
+
+<title> Expression parser </title>
+
+<body>
+
+<h2> Input </h2>
+<div id="input">
+<textarea rows="4" cols="50" id="textArea">
+
+</textarea>
+</div>
+
+
+	<h3> Results </h3>
+<div id="results">
+<div>
+
+</body>
+
+
+</html>
