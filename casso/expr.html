@@ -116,6 +116,10 @@ function parseCondition(condition)
 	}
 
 
+	if(components[1]=="?") {
+		return true;
+	}
+
 	var variableName = components[0];
 	var variable = variables[variableName];
 	if(variable == null || variable == undefined) {
@@ -124,9 +128,6 @@ function parseCondition(condition)
 		variable = variables[variableName];
 	}
 
-	if(components[1]=="?") {
-		return true;
-	}
 
 	var node = parseComponent(components[1]);
 
