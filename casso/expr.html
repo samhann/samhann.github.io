@@ -1,6 +1,29 @@
 <html>
 <head></head>
 
+<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <style>
+    .results {
+      background-color: #fafafa;
+      padding-left: 10px;
+      padding-right: 10px;
+      border-radius: 3px;
+    }
+    #result-table {
+      margin-top: 20px;
+      border-radius: 3px;
+    }
+    .form-group {
+      margin-top: 30px;
+    }
+    .btn-primary {
+      margin-top: 10px;
+    }
+  </style>
+
+
 <script src="math.js"></script>
 <script src="c.js"></script>
 <script src="c.min.js"></script>
@@ -13,10 +36,21 @@ function splitToExpr(string)
 	return components.map( function(element) { return element.trim()  });
 }
 
-function parseComponent(component,variable)
+function parseComponent(components)
 {
-	var node = math.parse(component)
+	var node = math.parse(components[1])
 	var stack = [];
+
+
+	var variableName = components[0];
+	var variable = variables[variableName];
+	if(variable == null || variable == undefined) {
+
+		variables[variableName] = new c.Variable({ value: 10 });
+		variable = variables[variableName];
+	}
+
+	console.log(variable);
 
 	node.traverse(function (node, path, parent) {
   		
@@ -27,16 +61,45 @@ function parseComponent(component,variable)
 		
   		});
 	
-	for(var i = 0; i < stack.length; i ++)
-	{
+
+	var stackCopy = stack.slice();
+	var invert = false;
+	var inversionVariable = null;
+	var divisionVariable = null;
+
+	if(stackCopy.length > 1) {
+
+			while(stackCopy.length > 1) {
+				var op1 = stackCopy.pop();
+				var op2 = stackCopy.pop();
+				var op = stackCopy.pop();
+
+				if(op.op == "/" && variables[op1.name] == undefined) {
+					invert = true;
+					inversionVariable = op1.name;
+					break;
+				}
+				var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+				stackCopy.push(expression);
+		
+		}
 
 	}
 
 
+	if(invert) {
+
+		divisionVariable = variable;
+		variables[inversionVariable] = new c.Variable({ value: 10 });
+		variable = variables[inversionVariable];
+
+		console.log(" d "+divisionVariable.name+ " i "+inversionVariable)
+	}
+
 	// dumb hack .. fix ..
 	if (stack.length == 1) {
 
-		return nodeForOperand(stack[0]);
+		return [variable,nodeForOperand(stack[0])];
 	}
 	else {
 
@@ -46,9 +109,46 @@ function parseComponent(component,variable)
 			var op2 = stack.pop();
 			var op = stack.pop();
 
-			var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+			if(invert && op.op == "/" && op1.name == inversionVariable) {
+				var expression = expressionFor(nodeForOperand(op2),new c.Expression(parseFloat(divisionVariable.value)) ,op);
+			    stack.push(expression);
+			    expression["divided"] = true;
 
-			stack.push(expression);
+
+			}
+			else {
+
+				if(invert) {
+
+					var firstOp = op1;
+					var secondOp = op2;
+
+					if(op1["divided"] == undefined && (op.op == "+" || op.op == "-" )) {
+
+						firstOp = expressionFor(op1,new c.Expression(parseFloat(divisionVariable.value)),"/");
+					}
+
+					if(op2["divided"] == undefined && (op.op == "+" || op.op == "-" )) {
+
+						secondOp = expressionFor(op2,new c.Expression(parseFloat(divisionVariable.value)),"/");
+					}
+
+				var expression = expressionFor(firstOp,secondOp,op);
+			    stack.push(expression);
+			    expression["divided"] = true;
+
+
+
+				}
+				else {
+
+				var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+			    stack.push(expression);
+
+
+				}
+
+			}
 		
 	}
 
@@ -56,7 +156,7 @@ function parseComponent(component,variable)
 	}
 
 
-	return stack[0];
+	return [variable,stack[0]];
 }
 
 function expressionFor(op1,op2,operand)
@@ -110,6 +210,10 @@ var variables = {};
 
 function parseCondition(condition)
 {
+	if(condition[0]=="'") {
+		return true;
+	}
+
 	var components = splitToExpr(condition)
 	if (components.length != 2 ) {
 		return false;
@@ -120,19 +224,12 @@ function parseCondition(condition)
 		return true;
 	}
 
-	var variableName = components[0];
-	var variable = variables[variableName];
-	if(variable == null || variable == undefined) {
-
-		variables[variableName] = new c.Variable({ value: 10 });
-		variable = variables[variableName];
-	}
 
 
-	var node = parseComponent(components[1]);
+	var node = parseComponent(components);
 
 
-	var equation = new c.Equation(variable,node);
+	var equation = new c.Equation(node[0],node[1]);
 	cS.addConstraint(equation);
 
 	return true;
@@ -155,7 +252,7 @@ function processConditions(text)
 
 		if(!parseCondition(text[i])) {
 
-			document.getElementById("results").innerHTML = "Error";
+			document.getElementById("results-table").innerHTML = "Please check your expressions.";
 			return;
 		}
 	}
@@ -172,13 +269,30 @@ function processConditions(text)
 
 	var resultText = results.join("<br/>");
 
-	document.getElementById("results").innerHTML = resultText;
+	document.getElementById("results-table").innerHTML = resultText;
 
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
     
-    var area = document.getElementById("input").querySelector('textarea');
+    var area = document.getElementById("textArea");
+
+    area.value = "'This is a demo of a cool tool you can use to play with numbers \n\
+'As you can see you can start a comment with a ' character and intermingle explanations.\n\
+'It's still very buggy though :)\n\
+'Let us examine a use case. Let us analyse the demonetisation exercise\n\n\
+'Let us define a variable\n\
+'Number of five hundreds we need in crores\n\
+fiveHundredNotesNeeded = 1971\n\
+twoThousandNotesNeeded = 316\n\
+totalNotesNeeded = fiveHundredNotesNeeded + twoThousandNotesNeeded\n\
+rbiCapacityPerMonth=200\n\
+'monthsForTotalReplacement =  2\n\
+monthsForTotalReplacement = totalNotesNeeded/rbiCapacityPerMonth\n\
+\n\
+' So we need 11.435 months. \n\
+' Now let us see how much capacity we need to replace it in two months\n\
+' Uncomment the monthsForTotalReplacement=2 and change the 200 for rbiCapacityPerMonth to a \"?\""
 if (area.addEventListener) {
   area.addEventListener('input', function() {
     
@@ -189,6 +303,10 @@ if (area.addEventListener) {
 
   }, false);
 }
+
+
+    var text = area.value;
+    processConditions(text.split("\n").filter(function (element) { return element.trim().length > 0; }));
   });
 
 </script>
@@ -197,17 +315,23 @@ if (area.addEventListener) {
 
 <body>
 
+ <div class="container">
+      <div class="row">
+        <div class="col-xs-6 col-sm-offset-3">
+
 <h2> Input </h2>
-<div id="input">
-<textarea rows="4" cols="50" id="textArea">
+
+<textarea rows="20" cols="50" id="textArea" class="form-control">
 
 </textarea>
-</div>
 
 
-	<h3> Results </h3>
-<div id="results">
+<div class="results">
+		<h3> Results </h3>
+		<div id="results-table">
+		</div>
 <div>
+</div></div></div>
 
 </body>
 
