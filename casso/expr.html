@@ -30,6 +30,121 @@
 
 <script>
 
+
+/**
+ * general topological sort
+ * @author SHIN Suzuki (shinout310@gmail.com)
+ * @param Array<Array> edges : list of edges. each edge forms Array<ID,ID> e.g. [12 , 3]
+ *
+ * @returns Array : topological sorted list of IDs
+ **/
+
+function tsort(edges) {
+  var nodes   = {}, // hash: stringified id of the node => { id: id, afters: lisf of ids }
+      sorted  = [], // sorted list of IDs ( returned value )
+      visited = {}; // hash: id of already visited node => true
+
+  var Node = function(id) {
+    this.id = id;
+    this.afters = [];
+  }
+
+  // 1. build data structures
+  edges.forEach(function(v) {
+    var from = v[0], to = v[1];
+    if (!nodes[from]) nodes[from] = new Node(from);
+    if (!nodes[to]) nodes[to]     = new Node(to);
+    nodes[from].afters.push(to);
+  });
+
+  // 2. topological sort
+  Object.keys(nodes).forEach(function visit(idstr, ancestors) {
+    var node = nodes[idstr],
+        id   = node.id;
+
+    // if already exists, do nothing
+    if (visited[idstr]) return;
+
+    if (!Array.isArray(ancestors)) ancestors = [];
+
+    ancestors.push(id);
+
+    visited[idstr] = true;
+
+    node.afters.forEach(function(afterID) {
+      if (ancestors.indexOf(afterID) >= 0)  // if already in ancestors, a closed chain exists.
+        throw new Error('closed chain : ' +  afterID + ' is in ' + id);
+
+      visit(afterID.toString(), ancestors.map(function(v) { return v })); // recursive call
+    });
+
+    sorted.unshift(id);
+  });
+
+  return sorted;
+}
+
+
+function topologicalSort(conditions)
+{
+	var conditionHash = {};
+	var edges = [];
+
+	for(var i = 0; i< conditions.length; i++)
+	{
+			if(conditions[0]=="'") {
+				continue;
+			}
+
+				var components = splitToExpr(conditions[i]);
+			    if (components.length != 2 ) {
+					return false;
+				}
+
+
+				if(components[1]=="?") {
+					continue;
+				}
+
+
+			var node = math.parse(components[1])
+
+			var condition = { "var" : components[0] , "cond" : conditions[i]};
+
+
+				node.traverse(function (tnode, path, parent) {
+  		
+					if(tnode.type == "SymbolNode") {
+
+						edges.push([condition["var"],tnode.name]);
+					}
+		});
+		
+  		}
+
+
+
+
+	
+
+	try {
+			var sorted = tsort(edges);
+			var topologicalSorted = [];
+
+			for(var i = 0; i < sorted.length ; i ++) {
+
+			topologicalSorted.push(conditionHash[sorted[i]]["cond"]);
+			}
+
+			return topologicalSorted;
+	}
+	catch(e) {
+		return null;
+	}
+	
+
+}
+
 function splitToExpr(string)
 {
 	components = string.split("=")
@@ -39,18 +154,18 @@ function splitToExpr(string)
 function parseComponent(components)
 {
 	var node = math.parse(components[1])
-	var stack = [];
 
 
 	var variableName = components[0];
 	var variable = variables[variableName];
+	
 	if(variable == null || variable == undefined) {
 
 		variables[variableName] = new c.Variable({ value: 10 });
 		variable = variables[variableName];
 	}
 
-	console.log(variable);
+	var stack = [];
 
 	node.traverse(function (node, path, parent) {
   		
@@ -247,6 +362,14 @@ function processConditions(text)
 {
 	cS = new c.SimplexSolver();
 	variables = {};
+
+	var sortedConditions = topologicalSort(text);
+
+	if (sortedConditions==null) {
+			document.getElementById("results-table").innerHTML = "Cyclic dependency detected";
+			return;
+
+	}
 
 	for(var i = 0; i< text.length; i ++) {
 
