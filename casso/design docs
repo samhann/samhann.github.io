@@ -1,0 +1,48 @@
+
+
+
+BaseModel
+
+call_back : String
+
+func cellReuseIdentifier()->String
+{	
+	asdfs
+}
+
+static func cellReuseIdentifier(identifier)
+{
+	return ""
+}
+
+static func makeCellForTableView(tableView:)
+
+CellModel
+
+static func cellReuseIdentifier(identifier)
+{
+	return "CellReuseIdentifier"
+}
+
+
+
+
+
+enum Action
+
+case Wishlist
+case Click
+
+
+BaseComponentCellDelegate
+
+func didPerformAction(action : Action, item: BaseModel)
+
+
+BaseComponentCell
+
+var model : ScrollModel 
+
+func updateWithModel(baseModel)
+func willDisplayInController(controller)
+func didEndDisplayingInController(controller)

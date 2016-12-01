@@ -229,7 +229,9 @@ break_even =          fixed
 	var inversionVariable = null;
 	var divisionVariable = null;
 
-	if(stackCopy.length > 1) {
+	if( stackCopy.length > 1) {
+
+		    variableCopy = Object.assign({}, variables);
 
 			while(stackCopy.length > 1) {
 				var op1 = stackCopy.pop();
@@ -263,7 +265,7 @@ break_even =          fixed
 					unknownValue = op2.unknown;
 				}
 
-				var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+				var expression = expressionFor(nodeForOperand(op2,variableCopy),nodeForOperand(op1,variableCopy),op);
 				stackCopy.push(expression);
 				expression["evaluated"] = true;
 				expression["unknown"] = unknownValue;
@@ -286,7 +288,7 @@ break_even =          fixed
 	// dumb hack .. fix ..
 	if (stack.length == 1) {
 
-		return [variable,nodeForOperand(stack[0])];
+		return [variable,nodeForOperand(stack[0],variables)];
 	}
 	else {
 
@@ -297,7 +299,7 @@ break_even =          fixed
 			var op = stack.pop();
 
 			if(invert && op.op == "/" && (op1["divided"] == true || op.name == inversionVariable)) {
-				var expression = expressionFor(nodeForOperand(op2),new c.Expression(parseFloat(divisionVariable.value)) ,op);
+				var expression = expressionFor(nodeForOperand(op2,variables),new c.Expression(parseFloat(divisionVariable.value)) ,op);
 			    stack.push(expression);
 			    expression["divided"] = true;
 
@@ -307,8 +309,8 @@ break_even =          fixed
 
 				if(invert) {
 
-					var firstOp = nodeForOperand(op1);
-					var secondOp = nodeForOperand(op2);
+					var firstOp = nodeForOperand(op1,variables);
+					var secondOp = nodeForOperand(op2,variables);
 
 					if(op1["divided"] == undefined && (op.op == "+" || op.op == "-" )) {
 
@@ -321,7 +323,7 @@ break_even =          fixed
 
 
 
-							firstOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op1),{ "op" : "/"});
+							firstOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op1,variables),{ "op" : "/"});
 						
 						
 
@@ -341,7 +343,7 @@ break_even =          fixed
 						else {
 							//secondOp = expressionFor(nodeForOperand(op2),new c.Expression(parseFloat(divisionVariable.value)),{ "op" : "/"});
 
-						secondOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op2),{ "op" : "/"});
+						secondOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op2,variables),{ "op" : "/"});
 
 						}
 					}
@@ -355,7 +357,7 @@ break_even =          fixed
 				}
 				else {
 
-				var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
+				var expression = expressionFor(nodeForOperand(op2,variables),nodeForOperand(op1,variables),op);
 			    stack.push(expression);
 
 
@@ -389,7 +391,7 @@ function expressionFor(op1,op2,operand)
 	}
 }
 
-function nodeForOperand(node)
+function nodeForOperand(node,variableContext)
 {
 		// hack hack
 		if(node["type"] == null || node["type"] == undefined) {
@@ -401,13 +403,13 @@ function nodeForOperand(node)
     			return new c.Expression(parseFloat(node.value)); 
     			break;
     		case 'SymbolNode':   
-    		    if(variables[node.name]) {
-    		      return new c.Expression(variables[node.name].value);	
+    		    if(variableContext[node.name]) {
+    		      return new c.Expression(variableContext[node.name].value);	
     		    }
     		    else {
 
-    		       variables[node.name] = new c.Variable({ value: 10 });
-			       return new c.Expression(variables[node.name]);	
+    		       variableContext[node.name] = new c.Variable({ value: 10 });
+			       return new c.Expression(variableContext[node.name]);	
 
 
     		    }
