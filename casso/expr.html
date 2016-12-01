@@ -90,19 +90,25 @@ function topologicalSort(conditions)
 	var conditionHash = {};
 	var edges = [];
 
+	var unknown = null;
+    var knownForUnknown = null;
+
 	for(var i = 0; i< conditions.length; i++)
 	{
-			if(conditions[0]=="'") {
+			if(conditions[i][0]=="'") {
 				continue;
 			}
 
 				var components = splitToExpr(conditions[i]);
 			    if (components.length != 2 ) {
-					return false;
+
+
+					return null;
 				}
 
 
 				if(components[1]=="?") {
+					unknown = components[0];
 					continue;
 				}
 
@@ -110,13 +116,33 @@ function topologicalSort(conditions)
 			var node = math.parse(components[1])
 
 			var condition = { "var" : components[0] , "cond" : conditions[i]};
+			var key = components[0];
+			if (conditionHash[key] != undefined) {
+				key = key+"_1";
+			}
 
+			conditionHash[key] = condition;
+
+			if(knownForUnknown == components[0] && knownForUnknown != null) {
+
+				edges.push([unknown,key]);
+			}
 
 				node.traverse(function (tnode, path, parent) {
   		
 					if(tnode.type == "SymbolNode") {
 
-						edges.push([condition["var"],tnode.name]);
+						if(unknown != null && tnode.name === unknown) {
+
+							knownForUnknown = components[0];
+							edges.push([tnode.name,key]);
+						}
+						else {
+
+							edges.push([tnode.name,key]);	
+						}
+
+						
 					}
 		});
 		
@@ -133,7 +159,11 @@ function topologicalSort(conditions)
 
 			for(var i = 0; i < sorted.length ; i ++) {
 
-			topologicalSorted.push(conditionHash[sorted[i]]["cond"]);
+			if(sorted[i] != unknown) {
+				topologicalSorted.push(conditionHash[sorted[i]]["cond"]);	
+			}
+
+			
 			}
 
 			return topologicalSorted;
@@ -175,6 +205,23 @@ function parseComponent(components)
 		}
 		
   		});
+
+	/*
+
+fixed = 10000
+variable = 20
+sale = ?
+break_even = fixed / (sale - variable)
+break_even=200
+
+break_even =          fixed 
+            foo * ---------------- + .... + 
+                    sale - variable
+
+
+
+
+	*/
 	
 
 	var stackCopy = stack.slice();
@@ -189,13 +236,38 @@ function parseComponent(components)
 				var op2 = stackCopy.pop();
 				var op = stackCopy.pop();
 
-				if(op.op == "/" && variables[op1.name] == undefined) {
+				if(op.op == "/" && (variables[op1.name] == undefined && op1["evaluated"] == undefined) || op1["unknown"] != null) {
 					invert = true;
 					inversionVariable = op1.name;
+
+					if(op1["unknown"] != null) {
+						inversionVariable = op1["unknown"];
+					}
 					break;
 				}
+
+				var unknownValue = null;
+					if(op1["evaluated"] == undefined && variables[op1.name] == undefined) {
+					unknownValue = op1.name;	
+				}
+
+				if(op2["evaluated"] == undefined && variables[op2.name] == undefined) {
+					unknownValue = op2.name;
+				}
+
+				if(op1["evaluated"] == true ) {
+					unknownValue = op1.unknown;
+				}
+
+				if(op2["evaluated"] == true ) {
+					unknownValue = op2.unknown;
+				}
+
 				var expression = expressionFor(nodeForOperand(op2),nodeForOperand(op1),op);
 				stackCopy.push(expression);
+				expression["evaluated"] = true;
+				expression["unknown"] = unknownValue;
+			
 		
 		}
 
@@ -224,7 +296,7 @@ function parseComponent(components)
 			var op2 = stack.pop();
 			var op = stack.pop();
 
-			if(invert && op.op == "/" && op1.name == inversionVariable) {
+			if(invert && op.op == "/" && (op1["divided"] == true || op.name == inversionVariable)) {
 				var expression = expressionFor(nodeForOperand(op2),new c.Expression(parseFloat(divisionVariable.value)) ,op);
 			    stack.push(expression);
 			    expression["divided"] = true;
@@ -235,20 +307,46 @@ function parseComponent(components)
 
 				if(invert) {
 
-					var firstOp = op1;
-					var secondOp = op2;
+					var firstOp = nodeForOperand(op1);
+					var secondOp = nodeForOperand(op2);
 
 					if(op1["divided"] == undefined && (op.op == "+" || op.op == "-" )) {
 
-						firstOp = expressionFor(op1,new c.Expression(parseFloat(divisionVariable.value)),"/");
+						if(op1["name"] == inversionVariable) {
+
+							firstOp = new c.Expression(1);
+						}
+						else {
+							//firstOp = expressionFor(nodeForOperand(op1),new c.Expression(parseFloat(divisionVariable.value)),{ "op" : "/"});
+
+
+
+							firstOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op1),{ "op" : "/"});
+						
+						
+
+
+						}
+
+
+
 					}
 
 					if(op2["divided"] == undefined && (op.op == "+" || op.op == "-" )) {
 
-						secondOp = expressionFor(op2,new c.Expression(parseFloat(divisionVariable.value)),"/");
+						if(op2["name"] == inversionVariable) {
+
+							secondOp = new c.Expression(1);
+						}
+						else {
+							//secondOp = expressionFor(nodeForOperand(op2),new c.Expression(parseFloat(divisionVariable.value)),{ "op" : "/"});
+
+						secondOp = expressionFor(new c.Expression(parseFloat(divisionVariable.value)),nodeForOperand(op2),{ "op" : "/"});
+
+						}
 					}
 
-				var expression = expressionFor(firstOp,secondOp,op);
+				var expression = expressionFor(secondOp,firstOp,op);
 			    stack.push(expression);
 			    expression["divided"] = true;
 
@@ -371,9 +469,9 @@ function processConditions(text)
 
 	}
 
-	for(var i = 0; i< text.length; i ++) {
+	for(var i = 0; i< sortedConditions.length; i ++) {
 
-		if(!parseCondition(text[i])) {
+		if(!parseCondition(sortedConditions[i])) {
 
 			document.getElementById("results-table").innerHTML = "Please check your expressions.";
 			return;
@@ -400,22 +498,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
     
     var area = document.getElementById("textArea");
 
-    area.value = "'This is a demo of a cool tool you can use to play with numbers \n\
-'As you can see you can start a comment with a ' character and intermingle explanations.\n\
-'It's still very buggy though :)\n\
-'Let us examine a use case. Let us analyse the demonetisation exercise\n\n\
-'Let us define a variable\n\
-'Number of five hundreds we need in crores\n\
-fiveHundredNotesNeeded = 1971\n\
-twoThousandNotesNeeded = 316\n\
-totalNotesNeeded = fiveHundredNotesNeeded + twoThousandNotesNeeded\n\
-rbiCapacityPerMonth=200\n\
-'monthsForTotalReplacement =  2\n\
-monthsForTotalReplacement = totalNotesNeeded/rbiCapacityPerMonth\n\
-\n\
-' So we need 11.435 months. \n\
-' Now let us see how much capacity we need to replace it in two months\n\
-' Uncomment the monthsForTotalReplacement=2 and change the 200 for rbiCapacityPerMonth to a \"?\""
+    area.value = "'Let us try a break even analysis (how much to sell of something to recover your initial investment)\n\n\n\
+fixed_cost = 10000 \n\
+variable_cost = 20  \n\
+sale_price = ? \n\
+break_even = fixed_cost / (sale_price - variable_cost) \n\
+break_even=200 \n\n\n\
+\
+'sale_price is automatically solved for :)\n\
+'Change the numbers to watch the results change live. Give sale price a value and delete break_even=200 to get the break even number."
 if (area.addEventListener) {
   area.addEventListener('input', function() {
     
