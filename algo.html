@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello!</title>
+<link rel="stylesheet" href="https://stackedit.io/res-min/themes/base.css" />
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+</head>
+<body><div class="container"><h1 id="the-noobs-guide-to-solving-algorithm-problems">The Noobs Guide To Solving Algorithm Problems</h1>
+
+<h2 id="to-understand-recursion-your-must-first-understand-recursion">To Understand Recursion Your Must First Understand Recursion</h2>
+
+<p>In this essay I’d like to focus more on insights and deep understanding rather than memorizing specific algorithms and tricks. </p>
+
+<p>And if there is one thing that lies at the heart of solving algorithm problems its recursion. Even problems that are solved iteratively have a recursive structure.</p>
+
+<p>So let us consider our first problem . </p>
+
+<pre><code>Find the maximum element in an array
+</code></pre>
+
+<p>Now before you run off to write a for loop lets think about how to break it down recursively.</p>
+
+<p>The questions you need to ask are:</p>
+
+
+
+<h4 id="what-is-the-smallest-instance-of-the-problem">What is the smallest instance of the problem ?</h4>
+
+<p>The smallest instance of the problem is where the array contains a single element. This is called the base case.</p>
+
+<h4 id="how-do-we-make-the-problem-smaller-can-we-do-it-in-terms-of-itself">How do we make the problem smaller ? Can we do it in terms of itself ?</h4>
+
+<p>We are trying to find the smallest element in the array. Say we remove the first element. Now we have a smaller sub problem which is the same as the problem we are trying to solve. </p>
+
+<p>Now how do we combine the two ? </p>
+
+<p>The maximum of the whole array is the max of the first element and the maximum of the rest of the array. So we simply call into the same function and the “recursion fairy” does the rest. </p>
+
+<pre><code>max_array(array):
+    if len(array)==1:
+        return array[0]
+    return max(array[0],max_array(array[1:])) 
+</code></pre>
+
+<p>Notice here that we need keep track array[0] until the recursion completes. And we need to keep track of array[0] for each recursive call until we reach the end.  This kind of recursion thus needs extra space.</p>
+
+<p>Such a process is called a recursive process.</p>
+
+<h2 id="but-wait-why-not-a-just-a-for-loop">But wait why not a just a for loop ?</h2>
+
+<p>What if I told you that a for loop is also a kind of recursive call ?</p>
+
+<p>Once you have a recursive solution one can explore how to make it iterative.</p>
+
+<p>Let us try rewriting the above function in such a way that the final return statement is just a call to the same max_array function. Nothing else.</p>
+
+<p>How would we do it ?</p>
+
+<p>Let us think about “growing” a solution. Move from left to right and keep track of the maximum so far . </p>
+
+<p>After some thinking one might write</p>
+
+<pre><code>max-iter(index,max_so_far,array):
+    if(index&gt;=len(array)):
+        return max_so_far
+    else:
+        max-iter(index+1,max(array[index],max_so_far,array)
+
+# To find max call it with
+max-iter(1,array[0],array)
+</code></pre>
+
+<p>This can then be translated to a for loop formulation as </p>
+
+<pre><code>max_val = array[0]
+for(index = 1; index &lt; len(array); index++) {
+    max_val = max(array[index],max_val)
+}
+</code></pre>
+
+<p>Each iteration basically calls in to the same function with an altered state. There is no need keep track of the current state. It can be discarded and we can directly jump into the recursive call with the new state. So one need not maintain a stack of the previous state.</p>
+
+<p>Such a process is called an iterative process and is so common that all languages have constructs like <code>for</code> and <code>while</code> to make it easier.</p>
+
+<h2 id="another-one">Another one</h2>
+
+<pre><code>Find the largest two elements in an array
+</code></pre>
+
+<h4 id="what-is-the-smallest-instance-of-the-problem-1">What is the smallest instance of the problem ?</h4>
+
+<p>The smallest valid instance of the problem is an array with two elements.</p>
+
+<p>The largest is the max of the two and the second largest is the min of the two.</p>
+
+<h3 id="can-we-solve-it-in-terms-of-a-recursive-process">Can we solve it in terms of a recursive process ?</h3>
+
+<p>Lets try chipping off two elements and seeing if we get the same problem.</p>
+
+<pre><code>largest_two(array):
+
+    if(len(array)==2):
+        return(max(array[0],array[1]),min(array[0],array[1])
+
+(largest_rest,second_largest_rest) = largest_two(array[1:])
+
+if array[0] &gt; largest_rest:
+    return (array[0],largest_rest)
+if array[0] &gt; second_largest_rest:
+    return (largest_rest,array[0])
+else:
+    return (largest_rest,second_largest_rest) 
+</code></pre>
+
+<h4 id="how-about-an-iterative-process">How about an iterative process?</h4>
+
+<p>Starting with the smallest instance , two elements and then grow the solution one element at a time . </p>
+
+<pre><code>largest_two(array,index,largest_so_far,second_largests_so_far):
+    if(index&gt;=len(array)):
+        return (largest_so_far,second_largest_so_far)
+
+     if array[index] &gt; largest_so_far:
+         return largest_two(array,index+1,array[index],largest_so_far)
+    if array[index] &gt; second_largest_so_far:
+        return largest_two(array,index+1,largest_so_far,array[0])
+    else:
+         return (array,index+1,largest_so_far,second_largest_so_far)
+</code></pre>
+
+<p>Now this can be easily rewritten to a for loop.</p></div></body>
+</html>
